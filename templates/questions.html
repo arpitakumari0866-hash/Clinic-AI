@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Symptom Check — ClinicAI</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  <style>
+    .q-nav {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      color: rgba(255,255,255,0.7);
+      font-size: 0.85rem;
+      margin-bottom: 24px;
+    }
+    .q-nav a {
+      color: rgba(255,255,255,0.85);
+      text-decoration: none;
+      font-weight: 600;
+    }
+    .q-nav a:hover { color: white; }
+  </style>
+</head>
+<body>
+<div class="question-page">
+
+  <div style="max-width: 560px; width: 100%; margin: 0 auto;">
+    <!-- top nav -->
+    <div class="q-nav">
+      <a href="/patient">← Exit to Dashboard</a>
+      <span>{{ dept }} Department</span>
+    </div>
+
+    <div class="question-card">
+      <!-- progress -->
+      <div class="progress-bar-wrap">
+        <div class="progress-bar-fill" style="width: {{ (index / total * 100) | int }}%"></div>
+      </div>
+
+      <div class="question-dept">{{ dept }}</div>
+      <div class="question-text">{{ question }}?</div>
+
+      <form method="POST" action="/questions" id="q-form">
+        <input type="hidden" name="answer" id="answer-input">
+        <div class="answer-buttons">
+          <button type="button" class="answer-btn yes {% if prev_answer == 'yes' %}selected{% endif %}"
+                  onclick="submitAnswer('yes')">
+            ✓ {{ t.yes }}
+          </button>
+          <button type="button" class="answer-btn no {% if prev_answer == 'no' %}selected{% endif %}"
+                  onclick="submitAnswer('no')">
+            ✗ {{ t.no }}
+          </button>
+        </div>
+      </form>
+
+      <div class="q-counter">Question {{ index }} of {{ total }}</div>
+
+      {% if index > 1 %}
+      <div style="margin-top:16px;">
+        <a href="/edit/{{ index - 2 }}" class="btn btn-ghost btn-sm">← Previous</a>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+
+</div>
+
+<script>
+function submitAnswer(val) {
+  document.getElementById('answer-input').value = val;
+  // animate button
+  document.querySelectorAll('.answer-btn').forEach(b => b.classList.remove('selected'));
+  document.querySelector('.answer-btn.' + val).classList.add('selected');
+  setTimeout(() => document.getElementById('q-form').submit(), 200);
+}
+
+// keyboard support
+document.addEventListener('keydown', e => {
+  if (e.key === 'y' || e.key === 'Y' || e.key === '1') submitAnswer('yes');
+  if (e.key === 'n' || e.key === 'N' || e.key === '2') submitAnswer('no');
+});
+</script>
+</body>
+</html>

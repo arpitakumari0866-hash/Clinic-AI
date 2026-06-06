@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Review Answers — ClinicAI</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body class="page-wrap">
+
+<nav class="navbar">
+  <a href="/patient" class="navbar-logo">🏥 ClinicAI</a>
+  <div class="navbar-user">
+    <span class="navbar-name">{{ session.name }}</span>
+    <span class="role-badge patient">Patient</span>
+  </div>
+</nav>
+
+<div style="max-width:640px; margin:40px auto; padding:0 24px;">
+
+  <div style="text-align:center; margin-bottom:32px;">
+    <h2 style="font-family:'Playfair Display',serif; font-size:2rem; color:var(--navy); margin-bottom:8px;">
+      Review Your Answers
+    </h2>
+    <p style="color:var(--muted);">Check your responses for <strong>{{ dept }}</strong>. You can edit any answer before submitting to your doctor.</p>
+  </div>
+
+  <div class="card" style="margin-bottom:20px;">
+    <table class="review-table">
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Symptom</th>
+          <th>Your Answer</th>
+          <th>Change</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for item in review_data %}
+        <tr>
+          <td style="color:var(--muted); font-size:0.82rem;">{{ loop.index }}</td>
+          <td>{{ item.symptom }}</td>
+          <td>
+            {% if item.answer == t.yes %}
+              <span class="yes-chip">✓ {{ item.answer }}</span>
+            {% else %}
+              <span class="no-chip">{{ item.answer }}</span>
+            {% endif %}
+          </td>
+          <td>
+            <a href="/edit/{{ item.index }}" class="btn btn-ghost btn-sm">Edit</a>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  <div style="display:flex; gap:12px; justify-content:center;">
+    <a href="/patient" class="btn btn-ghost">← Cancel</a>
+    <a href="/submit" class="btn btn-primary btn-lg">
+      ✓ Submit to Doctor
+    </a>
+  </div>
+
+  <p style="text-align:center; color:var(--muted); font-size:0.82rem; margin-top:16px;">
+    Your doctor will see your full profile and these answers before your appointment.
+  </p>
+</div>
+
+</body>
+</html>

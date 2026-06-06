@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Patient Dashboard — ClinicAI</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body class="page-wrap">
+
+<!-- NAVBAR -->
+<nav class="navbar">
+  <a href="/patient" class="navbar-logo">🏥 ClinicAI</a>
+  <div class="navbar-user">
+    <span class="navbar-name">{{ session.name }}</span>
+    <span class="role-badge patient">Patient</span>
+    <a href="/patient/profile" class="btn btn-ghost btn-sm">Edit Profile</a>
+    <a href="/logout" class="btn btn-ghost btn-sm">Sign Out</a>
+  </div>
+</nav>
+
+<!-- HEADER -->
+<div class="dashboard-header">
+  <h1>Good day, {{ session.name.split()[0] }} 👋</h1>
+  <p>Ready for your consultation? Fill in your symptoms before your appointment so your doctor is fully prepared.</p>
+</div>
+
+{% with messages = get_flashed_messages(with_categories=true) %}
+  {% for category, message in messages %}
+    <div class="flash-messages">
+      <div class="flash {{ category }}">{{ '✓' if category == 'success' else '⚠' }} {{ message }}</div>
+    </div>
+  {% endfor %}
+{% endwith %}
+
+<div class="dashboard-body">
+
+  <!-- PROFILE SUMMARY + START CONSULTATION -->
+  <div class="grid-2" style="margin-bottom:24px">
+
+    <!-- Profile card -->
+    <div class="card">
+      <div class="card-header">
+        <span class="card-title">Your Profile</span>
+        <a href="/patient/profile" class="btn btn-outline btn-sm">Update</a>
+      </div>
+      {% if profile %}
+        <div class="info-grid">
+          <div class="info-item">
+            <label>Age</label>
+            <span>{{ profile.age or '—' }}</span>
+          </div>
+          <div class="info-item">
+            <label>Gender</label>
+            <span>{{ profile.gender or '—' }}</span>
+          </div>
+          <div class="info-item">
+            <label>Blood Group</label>
+            <span>{{ profile.blood_group or '—' }}</span>
+          </div>
+          <div class="info-item">
+            <label>Phone</label>
+            <span>{{ profile.phone or '—' }}</span>
+          </div>
+        </div>
+        {% if profile.allergies %}
+          <div class="section-label">⚠ Known Allergies</div>
+          <div style="font-size:0.88rem; color:#991b1b; font-weight:500;">{{ profile.allergies }}</div>
+        {% endif %}
+        {% if profile.current_medications %}
+          <div class="section-label">💊 Current Medications</div>
+          <div style="font-size:0.88rem; color:var(--slate);">{{ profile.current_medications }}</div>
+        {% endif %}
+        {% if not profile.age %}
+          <div class="toggle-note" style="background:#fef3c7;border:1px solid #fde68a;border-radius:8px;padding:10px;font-size:0.84rem;color:#92400e;margin-top:12px;">
+            ⚠ Your profile is incomplete. <a href="/patient/profile" class="link">Complete it</a> so your doctor has all your details.
+          </div>
+        {% endif %}
+      {% else %}
+        <p style="color:var(--muted); font-size:0.9rem;">
+          No profile yet. <a href="/patient/profile" class="link">Add your details</a> so your doctor can help you better.
+        </p>
+      {% endif %}
+    </div>
+
+    <!-- Start consultation -->
+    <div class="consultation-card">
+      <h3>📋 Start Symptom Check</h3>
+      <p>Answer a few yes/no questions about your symptoms. This takes less than 2 minutes and helps your doctor a lot.</p>
+      <form method="POST" action="/patient/start">
+        <div class="form-group">
+          <label>Department / Speciality</label>
+          <select name="department" required>
+            {% for dept in departments %}
+              <option>{{ dept }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Preferred Language</label>
+          <select name="language">
+            <option>English</option>
+            <option>Hindi</option>
+            <option>Kannada</option>
+            <option>Tamil</option>
+            <option>Telugu</option>
+            <option>Malayalam</option>
+            <option>Marathi</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Anything extra you want to tell the doctor? <span style="font-weight:400;color:var(--muted)">(optional)</span></label>
+          <textarea name="notes" placeholder="I've had this for 3 days, it gets worse at night..."></textarea>
+        </div>
+        <button type="submit" class="btn btn-primary btn-block">
+          Begin Symptom Questionnaire →
+        </button>
+      </form>
+    </div>
+
+  </div>
+
+  <!-- SUBMISSION HISTORY -->
+  <div class="card">
+    <div class="card-header">
+      <span class="card-title">Past Submissions</span>
+      <span style="font-size:0.85rem;color:var(--muted);">{{ submissions|length }} total</span>
+    </div>
+    {% if submissions %}
+      <table class="history-table">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Department</th>
+            <th>Language</th>
+            <th>Notes</th>
+            <th>Submitted</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for s in submissions %}
+          <tr>
+            <td style="color:var(--muted)">{{ s[0] }}</td>
+            <td>
+              <span style="font-weight:600;">{{ s[1] }}</span>
+            </td>
+            <td>{{ s[4] }}</td>
+            <td style="color:var(--muted); font-size:0.84rem; max-width:200px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">
+              {{ s[3] or '—' }}
+            </td>
+            <td style="color:var(--muted); font-size:0.84rem;">{{ s[5][:16] }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    {% else %}
+      <div class="empty-state">
+        <div class="empty-state-icon">📋</div>
+        <h3>No submissions yet</h3>
+        <p>Fill in your symptoms above before your first appointment.</p>
+      </div>
+    {% endif %}
+  </div>
+
+</div>
+</body>
+</html>

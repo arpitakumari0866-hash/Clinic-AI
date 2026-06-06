@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Create Account — ClinicAI</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  <style>
+    .step-section { display: none; }
+    .step-section.active { display: block; }
+    .toggle-note {
+      background: #fffbeb;
+      border: 1px solid #fde68a;
+      border-radius: 8px;
+      padding: 10px 14px;
+      font-size: 0.84rem;
+      color: #92400e;
+      margin-bottom: 20px;
+    }
+  </style>
+</head>
+<body>
+<div class="auth-layout">
+
+  <!-- SIDEBAR -->
+  <div class="auth-sidebar">
+    <div class="logo" style="position:relative;z-index:1">🏥 ClinicAI</div>
+    <h1 style="position:relative;z-index:1">Join ClinicAI — doctor or patient, we've got you covered.</h1>
+    <p style="position:relative;z-index:1">Create your account once. Your medical details are pre-loaded for every consultation, saving precious time and awkward conversations.</p>
+    <div class="sidebar-features">
+      <div class="sidebar-feature">
+        <div class="sidebar-feature-icon">👨‍⚕️</div>
+        Doctors: see full patient history on arrival
+      </div>
+      <div class="sidebar-feature">
+        <div class="sidebar-feature-icon">🧑</div>
+        Patients: fill symptoms privately, once
+      </div>
+      <div class="sidebar-feature">
+        <div class="sidebar-feature-icon">🔐</div>
+        Secure login for each visit
+      </div>
+    </div>
+  </div>
+
+  <!-- FORM AREA -->
+  <div class="auth-form-area">
+    <div style="max-width: 460px; width: 100%;">
+      <h2>Create Account</h2>
+      <p class="auth-subtitle">Fill in your details to get started</p>
+
+      {% with messages = get_flashed_messages(with_categories=true) %}
+        {% for category, message in messages %}
+          <div class="flash {{ category }}">
+            {{ '✓' if category == 'success' else '⚠' }} {{ message }}
+          </div>
+        {% endfor %}
+      {% endwith %}
+
+      <form method="POST" action="/signup" id="signup-form">
+
+        <!-- ROLE SELECTION -->
+        <div class="form-section-title">I am a</div>
+        <div class="role-toggle">
+          <label class="role-card">
+            <input type="radio" name="role" value="patient" id="role-patient" checked>
+            <div class="role-card-inner">
+              <div class="role-card-icon">🧑</div>
+              <div class="role-card-label">Patient</div>
+              <div class="role-card-desc">Fill symptoms before visit</div>
+            </div>
+          </label>
+          <label class="role-card">
+            <input type="radio" name="role" value="doctor" id="role-doctor">
+            <div class="role-card-inner">
+              <div class="role-card-icon">👨‍⚕️</div>
+              <div class="role-card-label">Doctor</div>
+              <div class="role-card-desc">View patient submissions</div>
+            </div>
+          </label>
+        </div>
+
+        <!-- COMMON FIELDS -->
+        <div class="form-section-title">Basic Information</div>
+        <div class="form-group">
+          <label>Full Name</label>
+          <input type="text" name="name" placeholder="Dr. Priya Sharma / Rahul Verma" required>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Email Address</label>
+            <input type="email" name="email" placeholder="you@example.com" required>
+          </div>
+          <div class="form-group">
+            <label>Password</label>
+            <input type="password" name="password" placeholder="Min 6 characters" required minlength="6">
+          </div>
+        </div>
+
+        <!-- DOCTOR FIELDS -->
+        <div id="doctor-fields" class="step-section">
+          <div class="form-section-title">Doctor Details</div>
+          <div class="toggle-note">
+            ⚕️ You will only see patients from your department's queue.
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label>Department</label>
+              <select name="department">
+                {% for dept in departments %}
+                  <option value="{{ dept }}">{{ dept }}</option>
+                {% endfor %}
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Qualification</label>
+              <input type="text" name="qualification" placeholder="MBBS, MD, etc.">
+            </div>
+          </div>
+        </div>
+
+        <!-- PATIENT FIELDS -->
+        <div id="patient-fields" class="step-section active">
+          <div class="form-section-title">Personal Health Info</div>
+          <div class="toggle-note">
+            🔒 This information is only visible to your treating doctor.
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label>Age</label>
+              <input type="number" name="age" placeholder="e.g. 32" min="0" max="120">
+            </div>
+            <div class="form-group">
+              <label>Gender</label>
+              <select name="gender">
+                <option value="">Select</option>
+                <option>Male</option>
+                <option>Female</option>
+                <option>Other</option>
+                <option>Prefer not to say</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label>Blood Group</label>
+              <select name="blood_group">
+                <option value="">Unknown</option>
+                <option>A+</option><option>A-</option>
+                <option>B+</option><option>B-</option>
+                <option>AB+</option><option>AB-</option>
+                <option>O+</option><option>O-</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Phone Number</label>
+              <input type="tel" name="phone" placeholder="e.g. 9876543210">
+            </div>
+          </div>
+          <div class="form-group">
+            <label>Known Allergies</label>
+            <input type="text" name="allergies" placeholder="Penicillin, peanuts... or leave blank">
+          </div>
+          <div class="form-group">
+            <label>Current Medications</label>
+            <input type="text" name="current_medications" placeholder="Metformin 500mg, Amlodipine... or none">
+          </div>
+          <div class="form-group">
+            <label>Past Medical History <span style="font-weight:400;color:var(--muted)">(optional)</span></label>
+            <textarea name="medical_history" placeholder="Diabetes, hypertension, previous surgeries..."></textarea>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label>Address <span style="font-weight:400;color:var(--muted)">(optional)</span></label>
+              <input type="text" name="address" placeholder="City, State">
+            </div>
+            <div class="form-group">
+              <label>Emergency Contact <span style="font-weight:400;color:var(--muted)">(optional)</span></label>
+              <input type="text" name="emergency_contact" placeholder="Name & phone">
+            </div>
+          </div>
+        </div>
+
+        <button type="submit" class="btn btn-primary btn-block btn-lg" style="margin-top:12px">
+          Create Account →
+        </button>
+      </form>
+
+      <p class="text-center mt-4" style="font-size:0.9rem; color:var(--muted)">
+        Already have an account? <a href="/login" class="link">Sign In</a>
+      </p>
+    </div>
+  </div>
+</div>
+
+<script>
+  const roleInputs = document.querySelectorAll('input[name="role"]');
+  const doctorFields = document.getElementById('doctor-fields');
+  const patientFields = document.getElementById('patient-fields');
+
+  function updateFields() {
+    const role = document.querySelector('input[name="role"]:checked').value;
+    if (role === 'doctor') {
+      doctorFields.classList.add('active');
+      patientFields.classList.remove('active');
+    } else {
+      patientFields.classList.add('active');
+      doctorFields.classList.remove('active');
+    }
+  }
+
+  roleInputs.forEach(r => r.addEventListener('change', updateFields));
+</script>
+</body>
+</html>

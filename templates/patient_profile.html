@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>My Profile — ClinicAI</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body class="page-wrap">
+
+<nav class="navbar">
+  <a href="/patient" class="navbar-logo">🏥 ClinicAI</a>
+  <div class="navbar-user">
+    <span class="navbar-name">{{ session.name }}</span>
+    <span class="role-badge patient">Patient</span>
+    <a href="/patient" class="btn btn-ghost btn-sm">← Dashboard</a>
+    <a href="/logout" class="btn btn-ghost btn-sm">Sign Out</a>
+  </div>
+</nav>
+
+<div style="max-width:680px; margin:40px auto; padding:0 24px;">
+  <h2 style="font-family:'Playfair Display',serif; color:var(--navy); margin-bottom:6px;">My Medical Profile</h2>
+  <p style="color:var(--muted); margin-bottom:28px;">This information is shared with your doctor before each consultation. Keep it updated.</p>
+
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% for category, message in messages %}
+      <div class="flash {{ category }}">{{ '✓' if category == 'success' else '⚠' }} {{ message }}</div>
+    {% endfor %}
+  {% endwith %}
+
+  <div class="card">
+    <form method="POST" action="/patient/profile">
+
+      <div class="form-section-title">Personal Details</div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Age</label>
+          <input type="number" name="age" value="{{ profile.age or '' }}" placeholder="e.g. 35" min="0" max="120">
+        </div>
+        <div class="form-group">
+          <label>Gender</label>
+          <select name="gender">
+            <option value="">Select</option>
+            {% for g in ['Male', 'Female', 'Other', 'Prefer not to say'] %}
+              <option {% if profile and profile.gender == g %}selected{% endif %}>{{ g }}</option>
+            {% endfor %}
+          </select>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Blood Group</label>
+          <select name="blood_group">
+            <option value="">Unknown</option>
+            {% for bg in ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'] %}
+              <option {% if profile and profile.blood_group == bg %}selected{% endif %}>{{ bg }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Phone Number</label>
+          <input type="tel" name="phone" value="{{ profile.phone or '' }}" placeholder="9876543210">
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Address</label>
+        <input type="text" name="address" value="{{ profile.address or '' }}" placeholder="City, State">
+      </div>
+
+      <div class="form-section-title">Medical Information</div>
+      <div class="form-group">
+        <label>⚠ Known Allergies</label>
+        <input type="text" name="allergies" value="{{ profile.allergies or '' }}"
+               placeholder="Penicillin, NSAIDs, peanuts... (very important for doctor to know)">
+      </div>
+      <div class="form-group">
+        <label>💊 Current Medications</label>
+        <textarea name="current_medications" placeholder="List all medicines you currently take, with dosage if known">{{ profile.current_medications or '' }}</textarea>
+      </div>
+      <div class="form-group">
+        <label>Past Medical History</label>
+        <textarea name="medical_history" placeholder="Diabetes, hypertension, heart conditions, past surgeries, chronic illnesses...">{{ profile.medical_history or '' }}</textarea>
+      </div>
+
+      <div class="form-section-title">Emergency Contact</div>
+      <div class="form-group">
+        <label>Emergency Contact (Name & Phone)</label>
+        <input type="text" name="emergency_contact" value="{{ profile.emergency_contact or '' }}"
+               placeholder="e.g. Ravi Sharma — 9988776655">
+      </div>
+
+      <div style="display:flex; gap:12px; margin-top:8px;">
+        <button type="submit" class="btn btn-primary">Save Profile</button>
+        <a href="/patient" class="btn btn-ghost">Cancel</a>
+      </div>
+    </form>
+  </div>
+</div>
+
+</body>
+</html>

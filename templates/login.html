@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Login — ClinicAI</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+<div class="auth-layout">
+
+  <!-- SIDEBAR -->
+  <div class="auth-sidebar">
+    <div class="logo" style="position:relative;z-index:1">
+      🏥 ClinicAI
+    </div>
+    <h1 style="position:relative;z-index:1">Your health story, ready before you speak.</h1>
+    <p style="position:relative;z-index:1">Fill in your symptoms privately, in your own language. Your doctor sees everything clearly before the consultation begins.</p>
+    <div class="sidebar-features">
+      <div class="sidebar-feature">
+        <div class="sidebar-feature-icon">🌐</div>
+        Available in 7 Indian languages
+      </div>
+      <div class="sidebar-feature">
+        <div class="sidebar-feature-icon">🔒</div>
+        Your data is private and secure
+      </div>
+      <div class="sidebar-feature">
+        <div class="sidebar-feature-icon">⏱️</div>
+        Save time — no verbal repetition
+      </div>
+      <div class="sidebar-feature">
+        <div class="sidebar-feature-icon">💊</div>
+        Share allergies & medications safely
+      </div>
+    </div>
+  </div>
+
+  <!-- LOGIN FORM -->
+  <div class="auth-form-area">
+    <div style="max-width: 400px; width: 100%;">
+      <h2>Welcome back</h2>
+      <p class="auth-subtitle">Sign in to your ClinicAI account</p>
+
+      {% with messages = get_flashed_messages(with_categories=true) %}
+        {% for category, message in messages %}
+          <div class="flash {{ category }}">
+            {{ '✓' if category == 'success' else '⚠' }} {{ message }}
+          </div>
+        {% endfor %}
+      {% endwith %}
+
+      <form method="POST" action="/login">
+        <div class="form-group">
+          <label>Email Address</label>
+          <input type="email" name="email" placeholder="you@example.com" required autofocus>
+        </div>
+        <div class="form-group">
+          <label>Password</label>
+          <input type="password" name="password" placeholder="Enter your password" required>
+        </div>
+        <button type="submit" class="btn btn-primary btn-block btn-lg" style="margin-top:8px">
+          Sign In →
+        </button>
+      </form>
+
+      <div class="divider mt-4"><span>Don't have an account?</span></div>
+
+      <a href="/signup" class="btn btn-outline btn-block" style="margin-top:8px">
+        Create Account
+      </a>
+    </div>
+  </div>
+
+</div>
+</body>
+</html>

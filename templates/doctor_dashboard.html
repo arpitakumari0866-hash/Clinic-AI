@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Doctor Dashboard — ClinicAI</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  <style>
+    .filter-bar {
+      padding: 16px 32px;
+      background: white;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+    .filter-bar input {
+      padding: 8px 14px;
+      border: 1.5px solid var(--border);
+      border-radius: 8px;
+      font-size: 0.9rem;
+      font-family: inherit;
+      width: 280px;
+      outline: none;
+    }
+    .filter-bar input:focus { border-color: var(--teal); }
+    .count-badge {
+      background: var(--teal-pale);
+      color: var(--teal-dark);
+      border-radius: 20px;
+      padding: 4px 12px;
+      font-size: 0.82rem;
+      font-weight: 600;
+    }
+    .no-present { color: var(--muted); }
+    .critical-alert {
+      background: #fee2e2;
+      border-left: 3px solid var(--danger);
+      border-radius: 0 8px 8px 0;
+      padding: 8px 12px;
+      font-size: 0.84rem;
+      color: #991b1b;
+      margin-bottom: 10px;
+    }
+  </style>
+</head>
+<body class="page-wrap">
+
+<!-- NAVBAR -->
+<nav class="navbar">
+  <a href="/doctor" class="navbar-logo">🏥 ClinicAI</a>
+  <div class="navbar-user">
+    <span class="navbar-name">{{ profile.name if profile else session.name }}</span>
+    <span class="role-badge doctor">Doctor</span>
+    <a href="/logout" class="btn btn-ghost btn-sm">Sign Out</a>
+  </div>
+</nav>
+
+<!-- HEADER -->
+<div class="doctor-header">
+  <h1>
+    {% if profile %}
+      Dr. {{ profile.name }} — {{ profile.department }}
+      {% if profile.qualification %}<small style="font-size:1rem;opacity:0.75;font-family:'DM Sans',sans-serif">({{ profile.qualification }})</small>{% endif %}
+    {% else %}
+      Doctor Dashboard
+    {% endif %}
+  </h1>
+  {% if dept %}
+    <div class="dept-pill">📋 Showing only {{ dept }} department patients</div>
+  {% else %}
+    <div class="dept-pill">📋 Showing all departments</div>
+  {% endif %}
+</div>
+
+<!-- FILTER BAR -->
+<div class="filter-bar">
+  <input type="text" id="search-input" placeholder="🔍 Search by patient name, email..." oninput="filterCards()">
+  <span class="count-badge" id="count-badge">{{ patients|length }} patient{{ 's' if patients|length != 1 }}</span>
+</div>
+
+<!-- PATIENT CARDS -->
+{% if patients %}
+<div class="patient-grid" id="patient-grid">
+  {% for p in patients %}
+  <div class="patient-card" data-search="{{ p.name|lower }} {{ p.email|lower }}">
+
+    <!-- Card Header -->
+    <div class="patient-card-header">
+      <div>
+        <div class="patient-name">{{ p.name }}</div>
+        <div class="patient-meta">{{ p.email }}</div>
+      </div>
+      <span style="font-size:0.8rem;background:#e0f2fe;color:#0369a1;border-radius:20px;padding:3px 10px;font-weight:600;">
+        {{ p.department }}
+      </span>
+    </div>
+
+    <div class="patient-card-body">
+
+      <!-- Allergy alert if present -->
+      {% if p.allergies %}
+      <div class="critical-alert">
+        ⚠ <strong>Allergies:</strong> {{ p.allergies }}
+      </div>
+      {% endif %}
+
+      <!-- Basic Info -->
+      <div class="info-grid">
+        <div class="info-item">
+          <label>Age</label>
+          <span>{{ p.age or '—' }}</span>
+        </div>
+        <div class="info-item">
+          <label>Gender</label>
+          <span>{{ p.gender or '—' }}</span>
+        </div>
+        <div class="info-item">
+          <label>Blood Group</label>
+          <span>{{ p.blood_group or '—' }}</span>
+        </div>
+        <div class="info-item">
+          <label>Phone</label>
+          <span>{{ p.phone or '—' }}</span>
+        </div>
+      </div>
+
+      <!-- Medical History -->
+      {% if p.medical_history %}
+      <div class="section-label">📁 Medical History</div>
+      <div style="font-size:0.87rem; color:var(--slate);">{{ p.medical_history }}</div>
+      {% endif %}
+
+      <!-- Current Medications -->
+      {% if p.current_medications %}
+      <div class="section-label">💊 Current Medications</div>
+      <div style="font-size:0.87rem; color:var(--slate);">{{ p.current_medications }}</div>
+      {% endif %}
+
+      <!-- Symptoms -->
+      <div class="section-label">🩺 Reported Symptoms</div>
+      <div class="symptoms-grid">
+        {% for symptom, ans in p.symptoms.items() %}
+          {% if ans == 'Yes' %}
+            <span class="symptom-tag yes">✓ {{ symptom }}</span>
+          {% endif %}
+        {% endfor %}
+        {% set yes_count = p.symptoms.values()|list|select('equalto', 'Yes')|list|length %}
+        {% if yes_count == 0 %}
+          <span style="color:var(--muted);font-size:0.85rem;">No symptoms reported as present</span>
+        {% endif %}
+      </div>
+
+      <!-- Negative symptoms (collapsed) -->
+      <details style="margin-top:10px;">
+        <summary style="font-size:0.8rem;color:var(--muted);cursor:pointer;">Show all answered symptoms</summary>
+        <div class="symptoms-grid" style="margin-top:8px;">
+          {% for symptom, ans in p.symptoms.items() %}
+            {% if ans == 'No' %}
+              <span class="symptom-tag no">✗ {{ symptom }}</span>
+            {% endif %}
+          {% endfor %}
+        </div>
+      </details>
+
+      <!-- Patient Notes -->
+      {% if p.notes %}
+      <div class="section-label">📝 Patient's Notes</div>
+      <div class="notes-box">{{ p.notes }}</div>
+      {% endif %}
+
+      <!-- Timestamp & language -->
+      <div class="submitted-time">
+        🕐 Submitted: {{ p.submitted_at[:16] if p.submitted_at else '—' }}
+        {% if p.language and p.language != 'English' %}
+          &nbsp;·&nbsp; Answered in {{ p.language }}
+        {% endif %}
+      </div>
+
+    </div>
+  </div>
+  {% endfor %}
+</div>
+
+{% else %}
+<div class="empty-state" style="padding:80px 24px;">
+  <div class="empty-state-icon">🩺</div>
+  <h3>No patient submissions yet</h3>
+  <p>Patients from the <strong>{{ dept or 'your' }}</strong> department will appear here once they submit their symptoms.</p>
+</div>
+{% endif %}
+
+<script>
+function filterCards() {
+  const q = document.getElementById('search-input').value.toLowerCase();
+  const cards = document.querySelectorAll('.patient-card');
+  let visible = 0;
+  cards.forEach(card => {
+    const match = card.dataset.search.includes(q);
+    card.style.display = match ? '' : 'none';
+    if (match) visible++;
+  });
+  document.getElementById('count-badge').textContent =
+    visible + ' patient' + (visible !== 1 ? 's' : '');
+}
+</script>
+
+</body>
+</html>
